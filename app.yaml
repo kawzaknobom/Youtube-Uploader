@@ -1,0 +1,13 @@
+runtime: python37
+
+
+# [START handlers]
+handlers:
+# Telegram web hook URLs
+- url: /TG.*
+  script: bot.app
+
+# Other URLs - allowed only for gcloud project admins (Google login)
+- url: /.*
+  script: bot.app
+  login: admin

@@ -1,0 +1,8 @@
+Pyrogram
+nest_asyncio
+urllib3
+httplib2
+oauth2client
+google-api-python-client
+tgbot-ping
+TgCrypto
