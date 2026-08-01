@@ -29,7 +29,7 @@ import os ,re ,random,asyncio,shutil,time
 
 #########################################################
 
-Bot_Token = os.getenv('TOKEN')
+Bot_Token = os.getenv('Bot_Token')
 CLIENT_ID1 = os.getenv('CLIENT_ID1') 
 CLIENT_SECRET1 = os.getenv('CLIENT_SECRET1')
 CLIENT_ID2 = os.getenv('CLIENT_ID2') 
