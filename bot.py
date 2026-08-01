@@ -29,11 +29,11 @@ import os ,re ,random,asyncio,shutil,time
 
 #########################################################
 
-Bot_Token = os.environ('Bot_Token')
-CLIENT_ID1 = os.environ('CLIENT_ID1') 
-CLIENT_SECRET1 = os.environ('CLIENT_SECRET1')
-CLIENT_ID2 = os.environ('CLIENT_ID2') 
-CLIENT_SECRET2 = os.environ('CLIENT_SECRET2')
+Bot_Token = os.environ['Bot_Token']
+CLIENT_ID1 = os.environ['CLIENT_ID1'] 
+CLIENT_SECRET1 = os.environ['CLIENT_SECRET1']
+CLIENT_ID2 = os.environ['CLIENT_ID2']
+CLIENT_SECRET2 = os.environ['CLIENT_SECRET2']
 
 ###########################################################
 
