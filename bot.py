@@ -29,7 +29,9 @@ import os ,re ,random,asyncio,shutil,time
 
 #########################################################
 
-Bot_Token = os.environ['Bot_Token']
+Bot_Token = os.environ['Yu_Bot_Token']
+Api_Id = os.environ['Api_Id']
+Api_Hash =  os.environ['Api_Hash']
 CLIENT_ID1 = os.environ['CLIENT_ID1'] 
 CLIENT_SECRET1 = os.environ['CLIENT_SECRET1']
 CLIENT_ID2 = os.environ['CLIENT_ID2']
@@ -45,8 +47,6 @@ def Pyrogram_Client(Bot_Token):
   return bot,Bot_Identifier
 
 
-Api_Id = 15952578
-Api_Hash = '3600ce5f8f9b9e18cba0f318fa0e3600'
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 
 
