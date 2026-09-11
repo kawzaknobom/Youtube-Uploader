@@ -5,7 +5,7 @@ try:
 except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
+
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , CallbackQuery , ForceReply,Message,BotCommand
 from pyrogram.errors import FloodWait
@@ -106,10 +106,6 @@ def Check_Admin(bot,Channel_id):
   except : 
       False
 
-Bot_Token = '8294326341:AAFPb6MLgIZx4mJjGeAcoKp5-RS9BzPOmuY'
-
-#8294326341:AAFPb6MLgIZx4mJjGeAcoKp5-RS9BzPOmuY
-#6117473467:AAED9Vj4I1vInq5FV0shl0NNGf5w20Aif20
 
 bot,Bot_Identifier = Pyrogram_Client(Bot_Token)
 

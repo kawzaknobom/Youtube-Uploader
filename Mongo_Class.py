@@ -18,10 +18,10 @@ class Mongo_Db():
       Users.append(user.get("_id"))
     return Users
   
-  def Grap_Keys(self,data):
-    if not data in self.Grap_Users() :
-      self.Insert_User(data)
-    for user in self.Col.find({ "_id": data }) :
+  def Grap_Keys(self,User_Id):
+    if not User_Id in self.Grap_Users() :
+      self.Insert_User(User_Id)
+    for user in self.Col.find({ "_id": User_Id }) :
       Keys = list(user.keys())
     if 'id' in Keys :
       Keys.remove('id')
@@ -29,48 +29,49 @@ class Mongo_Db():
       Keys.remove('_id')
     if 'skip' in Keys:
       Keys.remove('skip')
-    if data in Keys :
-      Keys.remove(data)
+    if User_Id in Keys :
+      Keys.remove(User_Id)
     return Keys
   
-  def Grap_Values(self,data,field):
-    Values = self.Col.find_one({"_id": data},{str(field): 1, "_id": 0}).get(str(field))
+  def Grap_Values(self,User_Id,Key):
+    Values = self.Col.find_one({"_id": User_Id},{str(Key): 1, "_id": 0}).get(str(Key))
     return Values
   
-  def Insert_User(self,data):
-    self.Col.insert_one({"_id":data})
+  def Insert_User(self,User_Id):
+    self.Col.insert_one({"_id":User_Id})
 
-  def Insert_Key(self,data,field):
-    self.Col.update_one({"_id": data}, {"$set" :{str(field):[]}},upsert=True)
+  def Insert_Key(self,User_Id,Key):
+    self.Col.update_one({"_id": User_Id}, {"$set" :{str(Key):[]}},upsert=True)
   
-  def Insert_OKey(self,data,field):
-    self.Col.update_one({"_id": data}, {"$set" :{str(field):{}}},upsert=True)
+  def Insert_OKey(self,User_Id,Key):
+    self.Col.update_one({"_id": User_Id}, {"$set" :{str(Key):{}}},upsert=True)
     
-  def Insert_Item(self,data,field,Value):
-    # if not data in self.Grap_Users() :
-    #   self.Insert_User(data)
-    # if not field in self.Grap_Keys(data):
-    #   self.Insert_Key(data,field)
-    self.Col.update_one({"_id": data},{ "$push": { str(field): Value } })
+  def Insert_Item(self,User_Id,Key,Value):
+    # if not User_Id in self.Grap_Users() :
+    #   self.Insert_User(User_Id)
+    # if not Key in self.Grap_Keys(User_Id):
+    #   self.Insert_Key(User_Id,Key)
+    self.Col.update_one({"_id": User_Id},{ "$push": { str(Key): Value } })
 
-  def Delete_Item(self,data,field,Value):
-    self.Col.update_one({ "_id": data },{ "$pull": { str(field): Value } })
-  def Delete_AllItems(self,data,field):
-    self.Col.update_one({"_id": data},{"$set": {field: []}})
+  def Delete_Item(self,User_Id,Key,Value):
+    self.Col.update_one({ "_id": User_Id },{ "$pull": { str(Key): Value } })
+  def Delete_AllItems(self,User_Id,Key):
+    self.Col.update_one({"_id": User_Id},{"$set": {Key: []}})
 
-  def Delete_Key(self,data,field):
-    self.Col.update_one({ "_id": data },{ "$unset": { str(field): "" } })
+  def Delete_Key(self,User_Id,Key):
+    self.Col.update_one({ "_id": User_Id },{ "$unset": { str(Key): "" } })
   
-  def Edit_Item(self,data,field,Value,New_Value):
-    # if not data in self.Grap_Users() :
-    #   self.Insert_User(data)
-    # if not field in self.Grap_Keys(data):
-    #   self.Insert_Key(data,field)
-    self.Col.update_one({"_id": data, str(field): Value},{"$set": {f"{field}.$": New_Value}})
+  def Edit_Item(self,User_Id,Key,Value,New_Value):
+    # if not User_Id in self.Grap_Users() :
+    #   self.Insert_User(User_Id)
+    # if not Key in self.Grap_Keys(User_Id):
+    #   self.Insert_Key(User_Id,Key)
+    self.Col.update_one({"_id": User_Id, str(Key): Value},{"$set": {f"{Key}.$": New_Value}})
   
-  def Edit_Loop(self,data,field,New_Value):
-    # if not data in self.Grap_Users() :
-    #   self.Insert_User(data)
-    # if not field in self.Grap_Keys(data):
-    #   self.Insert_Key(data,field)
-    self.Col.update_one({"_id":data},{"$set":{field:New_Value}})
+
+
+
+
+
+
+
