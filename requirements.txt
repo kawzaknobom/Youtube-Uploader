@@ -7,5 +7,6 @@ tgbot-ping
 Flask
 beautifulsoup4
 requests
+apscheduler
 Werkzeug==2.3.8
 gunicorn 
