@@ -12,7 +12,7 @@ Api_Hash =  os.environ['Api_Hash']
 
 
 Bot_Identifier = Bot_Token.split(':')[0]
-Session_file = Bot_Identifier+'_session_prm_bot'
+Session_file = Bot_Identifier +'_session_prm_bot'
 
 
 bot = Client(Session_file,api_id=Api_Id,api_hash=Api_Hash,bot_token=Bot_Token)
