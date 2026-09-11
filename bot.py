@@ -1,3 +1,11 @@
+import asyncio
+
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
 from pyrogram.types import InlineKeyboardMarkup , InlineKeyboardButton , ReplyKeyboardMarkup , CallbackQuery , ForceReply,Message
 import urllib3,httplib2
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -25,7 +33,7 @@ from typing import Union
 from tgbot_ping import get_runtime
 
 from pyrogram import Client, filters,enums,StopTransmission,idle
-import os ,re ,random,asyncio,shutil,time
+import os ,re ,random,shutil,time
 
 #########################################################
 
