@@ -49,8 +49,8 @@ class Mongo_Db():
   def Insert_Item(self,User_Id,Key,Value):
     if not User_Id in self.Grap_Users() :
       self.Insert_User(User_Id)
-    # if not Key in self.Grap_Keys(User_Id):
-    #   self.Insert_Key(User_Id,Key)
+    if not Key in self.Grap_Keys(User_Id):
+      self.Insert_Key(User_Id,Key)
     self.Col.update_one({"_id": User_Id},{ "$push": { str(Key): Value } })
 
   def Delete_Item(self,User_Id,Key,Value):
