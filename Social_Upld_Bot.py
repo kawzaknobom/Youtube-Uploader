@@ -48,7 +48,7 @@ Skip_Key = 'skip'
 MNDB = Mongo_Db("Telegram_Db", "FbBot")
 
 # تأكد من وضع ID صحيح للقناة (Integer يبدأ بـ -100)
-Back_Chnl_Id = -100123456789 
+Back_Chnl_Id = "hvjjgvb" 
 
 ################# Extra Funcs ##########
 
