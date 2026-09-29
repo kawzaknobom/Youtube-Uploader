@@ -576,7 +576,7 @@ def Send_Post(Spec=None):
           جدولات قناتك {Page} شارفت على الانتهاء ، بقي {Post_Num-1} 🌿
           '''
           Reply_Msg.reply(Reply)
-        time.sleep(15)
+        time.sleep(60)
     MNDB.Delete_AllItems(User,globals()['Skip_Key'])
       
       
