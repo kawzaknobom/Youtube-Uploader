@@ -306,6 +306,11 @@ def command1(bot,message):
   message.reply(Reply)
 
 
+@bot.on_message(filters.command('runnow') & filters.private)
+def command1(bot,message):
+  Send_Post()
+
+
 @bot.on_message(filters.command('start_accum') & filters.private)
 def command1(bot,message):
   User_Id = message.from_user.id
@@ -517,6 +522,7 @@ def refunc(client,message):
       reply_msg.reply(Add_Acc_Data,reply_markup=ForceReply(True))
       if User_Id not in MNDB.Grap_Users() :
         MNDB.Insert_User(User_Id)
+        MNDB.Insert_Key(User_Id,globals()['Skip_Key'])
       MNDB.Insert_OKey(User_Id,Page_Name)
       reply_msg.delete()
     
