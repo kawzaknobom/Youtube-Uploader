@@ -305,12 +305,6 @@ def command1(bot,message):
     Reply += "🔸 لا توجد صفحات مرتبطة بالحساب"
   message.reply(Reply)
 
-
-@bot.on_message(filters.command('runnow') & filters.private)
-def command1(bot,message):
-  Send_Post()
-
-
 @bot.on_message(filters.command('start_accum') & filters.private)
 def command1(bot,message):
   User_Id = message.from_user.id
