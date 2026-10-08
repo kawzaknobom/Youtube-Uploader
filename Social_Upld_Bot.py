@@ -199,7 +199,7 @@ def post_text(Access_Token,Page_Id,text):
     feedid = response.text.replace('"','').replace('{','').replace('}','').split(':')[1].split('_')[1]
     feedlink = f"https://www.facebook.com/{Page_Id}/posts/{feedid}/"
     return feedlink
-    
+
 def upload_video_resumable(access_token, page_id, video_path, description="", publish=True):
     file_size = os.path.getsize(video_path)
     base_url = f"https://graph.facebook.com/v22.0/{page_id.strip()}/videos"
@@ -212,10 +212,12 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
     }
     
     start_res = requests.post(base_url, data=start_payload, headers=headers)
-    print("Start Response:", start_res.text) # سجل لمتابعة التشغيل
     res = start_res.json()
     
     upload_session_id = res.get('upload_session_id')
+    # احفظ المعرف من مرحلة البداية هنا!
+    video_id = res.get('video_id') or res.get('id')
+    
     if not upload_session_id:
         print("Facebook API Error (Start Phase Failed):", res)
         return None
@@ -251,11 +253,13 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
     }
     
     finish_res = requests.post(base_url, data=finish_payload, headers=headers)
-    print("Finish Response:", finish_res.text)
     f_res = finish_res.json()
     
-    # يُرجع فيسبوك 'id' أو 'video_id' أو يرجع نجاح العملية 'success': true
-    return f_res.get("id") or f_res.get("video_id")
+    # إذا نجحت عملية الإكمال، أرجع الـ video_id المخزن من المرحلة الأولى
+    if f_res.get("success") or f_res.get("id"):
+        return video_id or f_res.get("id")
+    
+    return None
 
 
 def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
@@ -278,7 +282,6 @@ def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
         except Exception as err:
             print(f"Error uploading video: {err}")
 
-    # حذف الملف المحلي بعد الانتهاء
     if os.path.exists(fb_path):
         os.remove(fb_path)
 
