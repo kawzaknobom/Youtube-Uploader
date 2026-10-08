@@ -200,8 +200,7 @@ def post_text(Access_Token,Page_Id,text):
     feedlink = f"https://www.facebook.com/{Page_Id}/posts/{feedid}/"
     return feedlink
     
-
-def upload_video_resumable(access_token, page_id, video_path, description="", publish=False):
+def upload_video_resumable(access_token, page_id, video_path, description="", publish=True):
     file_size = os.path.getsize(video_path)
     base_url = f"https://graph.facebook.com/v22.0/{page_id.strip()}/videos"
     
@@ -211,18 +210,20 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
         'upload_phase': 'start',
         'file_size': file_size
     }
-    res = requests.post(base_url, data=start_payload, headers=headers).json()
-    upload_session_id = res.get('upload_session_id')
     
+    start_res = requests.post(base_url, data=start_payload, headers=headers)
+    print("Start Response:", start_res.text) # سجل لمتابعة التشغيل
+    res = start_res.json()
+    
+    upload_session_id = res.get('upload_session_id')
     if not upload_session_id:
-        print("Facebook API Error (Start):", res)
+        print("Facebook API Error (Start Phase Failed):", res)
         return None
 
     start_offset = int(res.get('start_offset', 0))
     end_offset = int(res.get('end_offset', 0))
 
     # 2. Transfer Phase
-    chunk_size = 4 * 1024 * 1024  # 4 MB
     with open(video_path, 'rb') as f:
         while start_offset < file_size:
             f.seek(start_offset)
@@ -248,9 +249,12 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
         'description': description,
         'published': 'true' if publish else 'false'
     }
-    f_res = requests.post(base_url, data=finish_payload, headers=headers).json()
     
-    # فيسبوك قد يرجع 'id' أو 'video_id' حسب النواة
+    finish_res = requests.post(base_url, data=finish_payload, headers=headers)
+    print("Finish Response:", finish_res.text)
+    f_res = finish_res.json()
+    
+    # يُرجع فيسبوك 'id' أو 'video_id' أو يرجع نجاح العملية 'success': true
     return f_res.get("id") or f_res.get("video_id")
 
 
@@ -260,7 +264,7 @@ def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
         section = 'photos'
         cap = 'message'
         files = {'source': open(fb_path, 'rb')}
-        payload = {'access_token': Access_Token.strip(), cap: Media_Cap, 'published': str(publish).lower()}
+        payload = {'access_token': Access_Token.strip(), cap: Media_Cap, 'published': 'true' if publish else 'false'}
         url = f"https://graph.facebook.com/v22.0/{Page_Id.strip()}/{section}"
         response = requests.post(url, data=payload, files=files, headers=headers)
         try:
@@ -274,6 +278,7 @@ def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
         except Exception as err:
             print(f"Error uploading video: {err}")
 
+    # حذف الملف المحلي بعد الانتهاء
     if os.path.exists(fb_path):
         os.remove(fb_path)
 
@@ -282,7 +287,7 @@ def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
         return medialink
     else:
         return Media_id
-  
+    
 def upld_album(Access_Token,Page_Id,prof_id,msg_list,Media_Cap):
     file_ids = []
     for msg in msg_list : 
@@ -479,10 +484,11 @@ def callback_query(CLIENT,CallbackQuery):
           else :
             Bulk_List = [Msg_Id,]
           Creds = MNDB.Grap_Values(User_Id,Page_Name).get('Data')[0]
-          try :
-            Feed_Link = Fb_Upld(bot,Back_Chnl_Id,Creds,upld_dir,Bulk_List)
+          try:
+            Feed_Link = Fb_Upld(bot, Back_Chnl_Id, Creds, upld_dir, Bulk_List)
+            print("Generated Feed Link:", Feed_Link)
           except Exception as err:
-            pass
+            print("Error in Fb_Upld:", err)
           Reply_Msg = Get_Msg(bot,User_Id,Rpl_Id)
           try :
             Rep_Text = Feed_Link
