@@ -205,7 +205,7 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
     file_size = os.path.getsize(video_path)
     base_url = f"https://graph.facebook.com/v22.0/{page_id.strip()}/videos"
     
-    # 1. Phase: START
+    # 1. Start Phase
     start_payload = {
         'access_token': access_token.strip(),
         'upload_phase': 'start',
@@ -213,14 +213,16 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
     }
     res = requests.post(base_url, data=start_payload, headers=headers).json()
     upload_session_id = res.get('upload_session_id')
+    
+    if not upload_session_id:
+        print("Facebook API Error (Start):", res)
+        return None
+
     start_offset = int(res.get('start_offset', 0))
     end_offset = int(res.get('end_offset', 0))
 
-    if not upload_session_id:
-        raise Exception(f"Failed to start video upload session: {res}")
-
-    # 2. Phase: TRANSFER (Upload Chunks)
-    chunk_size = 4 * 1024 * 1024  # 4 MB لكل جزء
+    # 2. Transfer Phase
+    chunk_size = 4 * 1024 * 1024  # 4 MB
     with open(video_path, 'rb') as f:
         while start_offset < file_size:
             f.seek(start_offset)
@@ -238,49 +240,45 @@ def upload_video_resumable(access_token, page_id, video_path, description="", pu
             start_offset = int(t_res.get('start_offset', file_size))
             end_offset = int(t_res.get('end_offset', file_size))
 
-    # 3. Phase: FINISH
+    # 3. Finish Phase
     finish_payload = {
         'access_token': access_token.strip(),
         'upload_phase': 'finish',
         'upload_session_id': upload_session_id,
-        'title': 'Video Upload',
         'description': description,
-        'published': str(publish).lower()
+        'published': 'true' if publish else 'false'
     }
     f_res = requests.post(base_url, data=finish_payload, headers=headers).json()
-    return f_res.get("id")
+    
+    # فيسبوك قد يرجع 'id' أو 'video_id' حسب النواة
+    return f_res.get("id") or f_res.get("video_id")
 
 
 def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
-    # إذا كان الملف صورة
+    Media_id = None
     if fb_path.lower().endswith(Image_forms):
         section = 'photos'
         cap = 'message'
         files = {'source': open(fb_path, 'rb')}
-        payload = {'access_token': Access_Token.strip(), cap: Media_Cap, 'published': f"{publish}"}
+        payload = {'access_token': Access_Token.strip(), cap: Media_Cap, 'published': str(publish).lower()}
         url = f"https://graph.facebook.com/v22.0/{Page_Id.strip()}/{section}"
         response = requests.post(url, data=payload, files=files, headers=headers)
-        
         try:
-            Media_id = json.loads(response.text)["id"]
+            Media_id = response.json().get("id")
         except Exception as err:
-            print(response.text)
-            Media_id = None
-            
-    # إذا كان الملف فيديو، يتم رفعه باستخدام Resumable Upload لتجنب 413
+            print("Photo Upload Error:", response.text)
     else:
         section = 'videos'
         try:
             Media_id = upload_video_resumable(Access_Token, Page_Id, fb_path, description=Media_Cap, publish=publish)
         except Exception as err:
             print(f"Error uploading video: {err}")
-            Media_id = None
 
     if os.path.exists(fb_path):
         os.remove(fb_path)
 
     if publish and Media_id:
-        medialink = f"https://www.facebook.com/{Page_Id}/{section}/{Media_id}/"
+        medialink = f"https://www.facebook.com/{Page_Id.strip()}/{section}/{Media_id}/"
         return medialink
     else:
         return Media_id
