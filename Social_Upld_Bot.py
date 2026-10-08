@@ -200,31 +200,90 @@ def post_text(Access_Token,Page_Id,text):
     feedlink = f"https://www.facebook.com/{Page_Id}/posts/{feedid}/"
     return feedlink
     
-def up_func(Access_Token,Page_Id,Media_Cap,fb_path,publish=False) : 
-  if fb_path.lower().endswith(Image_forms) : 
+
+def upload_video_resumable(access_token, page_id, video_path, description="", publish=False):
+    file_size = os.path.getsize(video_path)
+    base_url = f"https://graph.facebook.com/v22.0/{page_id.strip()}/videos"
+    
+    # 1. Phase: START
+    start_payload = {
+        'access_token': access_token.strip(),
+        'upload_phase': 'start',
+        'file_size': file_size
+    }
+    res = requests.post(base_url, data=start_payload, headers=headers).json()
+    upload_session_id = res.get('upload_session_id')
+    start_offset = int(res.get('start_offset', 0))
+    end_offset = int(res.get('end_offset', 0))
+
+    if not upload_session_id:
+        raise Exception(f"Failed to start video upload session: {res}")
+
+    # 2. Phase: TRANSFER (Upload Chunks)
+    chunk_size = 4 * 1024 * 1024  # 4 MB لكل جزء
+    with open(video_path, 'rb') as f:
+        while start_offset < file_size:
+            f.seek(start_offset)
+            chunk_data = f.read(end_offset - start_offset)
+            
+            transfer_payload = {
+                'access_token': access_token.strip(),
+                'upload_phase': 'transfer',
+                'upload_session_id': upload_session_id,
+                'start_offset': start_offset
+            }
+            files = {'video_file_chunk': chunk_data}
+            
+            t_res = requests.post(base_url, data=transfer_payload, files=files, headers=headers).json()
+            start_offset = int(t_res.get('start_offset', file_size))
+            end_offset = int(t_res.get('end_offset', file_size))
+
+    # 3. Phase: FINISH
+    finish_payload = {
+        'access_token': access_token.strip(),
+        'upload_phase': 'finish',
+        'upload_session_id': upload_session_id,
+        'title': 'Video Upload',
+        'description': description,
+        'published': str(publish).lower()
+    }
+    f_res = requests.post(base_url, data=finish_payload, headers=headers).json()
+    return f_res.get("id")
+
+
+def up_func(Access_Token, Page_Id, Media_Cap, fb_path, publish=False):
+    # إذا كان الملف صورة
+    if fb_path.lower().endswith(Image_forms):
         section = 'photos'
         cap = 'message'
-  else :
-        section = 'videos'
-        cap = 'description'
+        files = {'source': open(fb_path, 'rb')}
+        payload = {'access_token': Access_Token.strip(), cap: Media_Cap, 'published': f"{publish}"}
+        url = f"https://graph.facebook.com/v22.0/{Page_Id.strip()}/{section}"
+        response = requests.post(url, data=payload, files=files, headers=headers)
         
-  files = {'source' : open(fb_path,'rb')}
-  payload = {'access_token': Access_Token.strip() , cap : Media_Cap,'published':f"{publish}" }
-  url = f'''https://graph.facebook.com/v22.0/{Page_Id.strip()}/{section}'''
-  response = requests.post(url,data=payload,files=files,headers=headers)
-  try:
-    Media_id = json.loads(response.text)["id"]
-  except Exception as err  :
-    print(response.text)
-    # if section == 'videos' :
-    #   fb_path = Media_Compress(fb_path)
-    #   return up_func(Access_Token,Page_Id,Media_Cap,fb_path,publish) 
-  os.remove(fb_path)
-  if publish :
-    medialink = f"https://www.facebook.com/{Page_Id}/{section}/{Media_id}/"
-    return medialink
-  else :
-    return Media_id
+        try:
+            Media_id = json.loads(response.text)["id"]
+        except Exception as err:
+            print(response.text)
+            Media_id = None
+            
+    # إذا كان الملف فيديو، يتم رفعه باستخدام Resumable Upload لتجنب 413
+    else:
+        section = 'videos'
+        try:
+            Media_id = upload_video_resumable(Access_Token, Page_Id, fb_path, description=Media_Cap, publish=publish)
+        except Exception as err:
+            print(f"Error uploading video: {err}")
+            Media_id = None
+
+    if os.path.exists(fb_path):
+        os.remove(fb_path)
+
+    if publish and Media_id:
+        medialink = f"https://www.facebook.com/{Page_Id}/{section}/{Media_id}/"
+        return medialink
+    else:
+        return Media_id
   
 def upld_album(Access_Token,Page_Id,prof_id,msg_list,Media_Cap):
     file_ids = []
