@@ -328,6 +328,9 @@ def command1(bot,message):
    
    message.reply('لبقية البوتات \n\n @sunnaybots \n\n للبدء \n\n /add_platform')
 
+@bot.on_message(filters.command('ko') & filters.private)
+def command1(bot,message):
+  MNDB.Delete_AllItems(message.from_user.id,globals()['Skip_Key'])
 
 def Get_Item(Page_Posts,Msg_Id):
   for post in Page_Posts :
