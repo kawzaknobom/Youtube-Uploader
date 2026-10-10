@@ -328,10 +328,6 @@ def command1(bot,message):
    
    message.reply('لبقية البوتات \n\n @sunnaybots \n\n للبدء \n\n /add_platform')
 
-@bot.on_message(filters.command('ko') & filters.private)
-def command1(bot,message):
-  MNDB.Delete_AllItems(message.from_user.id,globals()['Skip_Key'])
-
 def Get_Item(Page_Posts,Msg_Id):
   for post in Page_Posts :
     if Msg_Id in post :
@@ -593,6 +589,7 @@ def refunc(client,message):
       Acc_Token = '|'.join(Msg_Text.split('\n'))
       Page_Name = reply_msg.text.split('|')[-1].split('\n')[0].strip()
       MNDB.Insert_Item(User_Id,Page_Name +'.Data',Acc_Token)
+      MNDB.Insert_Key(User_Id,Page_Name +'.Sched')
       reply_msg.reply('تمت الإضافة بنجاح 🌿')
       reply_msg.delete()
       
