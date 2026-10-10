@@ -342,8 +342,6 @@ def command1(bot,message):
 def command1(bot,message):
   User_Id = message.from_user.id
   Keys_List = MNDB.Grap_Keys(User_Id)
-  if not globals()['Skip_Key'] in Keys_List :
-    MNDB.Insert_Key(User_Id,globals()['Skip_Key'])
   User_Ids = MNDB.Grap_Users()
   if not User_Id in User_Ids :
       message.reply('قم بإضافة قناة أولاً \n\n /add_Channel')
