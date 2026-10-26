@@ -419,15 +419,13 @@ def callback_query(CLIENT,CallbackQuery):
     Accum[User_Id].append(Channel_Id)
    else :  
      try :
-      Reply_Msg = Get_Msg(bot,User_Id,Rpl_Id)
       Rep_Text = 'اختر ما يناسب'
       Rep_Buttons = [
         [InlineKeyboardButton('نسخ',callback_data=f"Copy_{Msg_Id}_{Channel_Id}")],
         [InlineKeyboardButton('تحويل',callback_data=f"Forward_{Msg_Id}_{Channel_Id}")]
         ]
-      Reply_Msg.edit_text(text = Rep_Text,reply_markup = InlineKeyboardMarkup(Rep_Buttons))
+      CallbackQuery.edit_message_text(text = Rep_Text,reply_markup = InlineKeyboardMarkup(Rep_Buttons))
      except Exception as err :
-               print(str(err))
                pass
    CallbackQuery.message.delete()
    
