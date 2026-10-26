@@ -417,9 +417,9 @@ def callback_query(CLIENT,CallbackQuery):
   elif Method == 'Schedule' : 
    if User_Id in list(Accum.keys()) :
     Accum[User_Id].append(Channel_Id)
-    CallbackQuery.message.delete()
    else :  
      try :
+      Reply_Msg = Get_Msg(bot,User_Id,Rpl_Id)
       Rep_Text = 'اختر ما يناسب'
       Rep_Buttons = [
         [InlineKeyboardButton('نسخ',callback_data=f"Copy_{Msg_Id}_{Channel_Id}")],
@@ -427,8 +427,8 @@ def callback_query(CLIENT,CallbackQuery):
         ]
       Reply_Msg.edit_text(text = Rep_Text,reply_markup = InlineKeyboardMarkup(Rep_Buttons))
      except Exception as err :
-               print(str(err))
                pass
+   CallbackQuery.message.delete()
    
 def Add_Item(Msg,Item,Channel_Id,Mode):
     User_Id = Msg.from_user.id
