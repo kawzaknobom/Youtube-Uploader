@@ -427,6 +427,7 @@ def callback_query(CLIENT,CallbackQuery):
         ]
       Reply_Msg.edit_text(text = Rep_Text,reply_markup = InlineKeyboardMarkup(Rep_Buttons))
      except Exception as err :
+               print(str(err))
                pass
    CallbackQuery.message.delete()
    
