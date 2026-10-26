@@ -417,6 +417,7 @@ def callback_query(CLIENT,CallbackQuery):
   elif Method == 'Schedule' : 
    if User_Id in list(Accum.keys()) :
     Accum[User_Id].append(Channel_Id)
+    CallbackQuery.message.delete()
    else :  
      try :
       Rep_Text = 'اختر ما يناسب'
@@ -428,7 +429,6 @@ def callback_query(CLIENT,CallbackQuery):
      except Exception as err :
                print(str(err))
                pass
-   CallbackQuery.message.delete()
    
 def Add_Item(Msg,Item,Channel_Id,Mode):
     User_Id = Msg.from_user.id
