@@ -85,6 +85,17 @@ def Msg_Copy(Msg,Chnl_Id):
   except Exception as err : 
     Msg.reply(err)
     pass
+
+def Msg_Forward(Msg,Chnl_Id):
+  try : 
+     Copy = Msg.forward(int(Chnl_Id) if is_int(Chnl_Id) else str(Chnl_Id).replace('=','_'))
+     return Copy
+  except FloodWait as e :
+      time.sleep(e.value)
+      return Msg_Forward(Msg,Chnl_Id)
+  except Exception as err : 
+    Msg.reply(err)
+    pass
     
 def Get_Msg(bot,Chat_id,msg_id):
   try : 
@@ -239,22 +250,25 @@ def command1(bot,message):
       return
   if User_Id in list(Accum.keys()) : 
     reply_Id = Accum[User_Id][0]
+    Channel_Id = Accum[User_Id][1]
     if len(Accum[User_Id]) > 3 :
-      Data = Accum[User_Id][2]
-      Copied_List = []
-      for Case in Accum[User_Id][3:] :
-        Msg = Get_Msg(bot,User_Id,Case)
-        Copied = Msg_Copy(Msg,Back_Chnl_Id)
-        Copied_List.append(str(Copied.id))
-      Item = '-'.join(Copied_List)
-      Add_Item(Msg,Item,Data)
+      try :
+        Reply_Msg = Get_Msg(bot,User_Id,reply_Id)
+        Rep_Text = 'اختر ما يناسب'
+        Rep_Buttons = [
+          [InlineKeyboardButton('نسخ',callback_data=f"Copy_0_{Channel_Id}")],
+          [InlineKeyboardButton('تحويل',callback_data=f"Forward_0_{Channel_Id}")]
+          ]
+        Reply_Msg.edit_text(text = Rep_Text,reply_markup = InlineKeyboardMarkup(Rep_Buttons))
+      except Exception as err :
+        pass
+      
     else :
       Call_Id = Accum[User_Id][1]
       Call_Msg = Get_Msg(bot,User_Id,Call_Id)
       Call_Msg.delete()
-    Reply_Msg = Get_Msg(bot,User_Id,reply_Id)
-    Reply_Msg.edit_text('تم تعطيل التجميع 🌷')
-    Accum.pop(User_Id)
+      Reply_Msg.edit_text('تم تعطيل التجميع 🌷')
+      Accum.pop(User_Id)
       
 @bot.on_message(filters.private & filters.incoming)
 def _telegram_file(client, message):
@@ -319,16 +333,23 @@ def callback_query(CLIENT,CallbackQuery):
         Msg_List = Item.split('_')
         Msg_Id = Msg_List[0]
         Rpl_Id = Msg_List[1]
+        Mode = Msg_List[2]
         Res_list = []
         if '-' in Msg_Id : 
           Msgs = Msg_Id.split('-')
           for msg_id in Msgs :
             Msg = Get_Msg(bot,Back_Chnl_Id,msg_id)
-            Copied = Msg_Copy(Msg,Channel_Id)
+            if Mode == "Copy" :
+              Copied = Msg_Copy(Msg,Channel_Id)
+            else : 
+              Copied = Msg_Forward(Msg,Channel_Id)
             Res_list.append(str(Copied.id))
         else :
           Msg = Get_Msg(bot,Back_Chnl_Id,Msg_Id)
-          Copied = Msg_Copy(Msg,Channel_Id)
+          if Mode == "Copy" :
+            Copied = Msg_Copy(Msg,Channel_Id)
+          else : 
+            Copied = Msg_Forward(Msg,Channel_Id)
           Res_list.append(str(Copied.id))
         Reply_Msg = Get_Msg(bot,User_Id,Rpl_Id)
         try :
@@ -346,6 +367,33 @@ def callback_query(CLIENT,CallbackQuery):
     if Method == 'Cancel' :
       CallbackQuery.edit_message_text("تم الحذف 🌿")
   
+  elif Method in ('Copy','Forward') :
+    if User_Id in list(Accum.keys()) :
+        Data = Accum[User_Id][2]
+        Copied_List = []
+        for Case in Accum[User_Id][3:] :
+          Msg = Get_Msg(bot,User_Id,Case)
+          if Method == "Copy" :
+            Copied = Msg_Copy(Msg,Back_Chnl_Id)
+          else : 
+            Copied = Msg_Forward(Msg,Back_Chnl_Id) 
+          Copied = Msg_Copy(Msg,Back_Chnl_Id)
+          Copied_List.append(str(Copied.id))
+        Item = '-'.join(Copied_List)
+        Add_Item(Msg,Item,Data,Method)
+        reply_Id = Accum[User_Id][0]
+        Reply_Msg = Get_Msg(bot,User_Id,reply_Id)
+        Reply_Msg.edit_text('تم تعطيل التجميع 🌷')
+        Accum.pop(User_Id)
+    else :
+      Msg = Get_Msg(bot,User_Id,Msg_Id)
+      if Method == "Copy" :
+        Copied = Msg_Copy(Msg,Back_Chnl_Id)
+      else : 
+        Copied = Msg_Forward(Msg,Back_Chnl_Id)
+      Add_Item(Msg,Copied.id,Channel_Id,Method)
+    CallbackQuery.message.delete()
+      
   elif Method == 'Delete' :
     if '-' in Msg_Id :
       Msg_Ids = Msg_Id.split('-')
@@ -356,24 +404,32 @@ def callback_query(CLIENT,CallbackQuery):
       Msg = Get_Msg(bot,Channel_Id,Msg_Id)
       Msg_Delete(Msg)
     CallbackQuery.edit_message_text("تم الحذف 🌿")
+  
   elif Method == 'DelChnl' :
     MNDB.Delete_Key(User_Id,Channel_Id)
     # My_Db.Drop_Column(User_Id,Channel_Id)
     CallbackQuery.edit_message_text("تم الحذف 🌿")
+  
   elif Method == 'Skip' :
     MNDB.Insert_Item(User_Id,globals()['Skip_Key'],Channel_Id)
     CallbackQuery.edit_message_text("تم التخطي 🌿")
+  
   elif Method == 'Schedule' : 
    if User_Id in list(Accum.keys()) :
     Accum[User_Id].append(Channel_Id)
-   else :
-     Msg = Get_Msg(bot,User_Id,Msg_Id)
-     Copied = Msg_Copy(Msg,Back_Chnl_Id)
-     Add_Item(Msg,Copied.id,Channel_Id)
-   CallbackQuery.message.delete()
+    CallbackQuery.message.delete()
+   else :  
+     try :
+      Rep_Text = 'اختر ما يناسب'
+      Rep_Buttons = [
+        [InlineKeyboardButton('نسخ',callback_data=f"Copy_{Msg_Id}_{Channel_Id}")],
+        [InlineKeyboardButton('تحويل',callback_data=f"Forward_{Msg_Id}_{Channel_Id}")]
+        ]
+      Reply_Msg.edit_text(text = Rep_Text,reply_markup = InlineKeyboardMarkup(Rep_Buttons))
+     except Exception as err :
+               pass
    
-
-def Add_Item(Msg,Item,Channel_Id):
+def Add_Item(Msg,Item,Channel_Id,Mode):
     User_Id = Msg.from_user.id
     Cancel_Option = 'اختر'
     Cancel_Op = [['سحب','Cancel'],['إرسال الآن','Send']]
@@ -381,7 +437,7 @@ def Add_Item(Msg,Item,Channel_Id):
     for Op in Cancel_Op :
       Cancel_BUTTONS.append([InlineKeyboardButton(Op[0],callback_data=f"{Op[1]}_{Item}_{Channel_Id}")])
     Replied = Msg_Reply(Msg,Cancel_Option,Cancel_BUTTONS)
-    MNDB.Insert_Item(User_Id,Channel_Id,f"{Item}_{Replied.id}")
+    MNDB.Insert_Item(User_Id,Channel_Id,f"{Item}_{Replied.id}_{Mode}")
     # My_Db.Insert_Item(User_Id,Channel_Id,f"{Item}_{Replied.id}")
 
 def Chnl_List_Query(message,User_Id,Mode):
@@ -415,16 +471,26 @@ def Send_Post():
           Msg_List = Chnl_Posts[0].split('_')
           Msg_Id = Msg_List[0]
           Rpl_Id = Msg_List[1]
+          if len(Msg_List) == 3 :
+            Mode = Msg_List[2]
+          else : 
+            Mode = 'Copy'
           Res_list = []
           if '-' in Msg_Id : 
             Msgs = Msg_Id.split('-')
             for msg_id in Msgs :
               Msg = Get_Msg(bot,Back_Chnl_Id,msg_id)
-              Copied = Msg_Copy(Msg,Chnl)
+              if Mode == "Copy" :
+                Copied = Msg_Copy(Msg,Chnl)
+              else : 
+                Copied = Msg_Forward(Msg,Chnl)
               Res_list.append(str(Copied.id))
           else :
             Msg = Get_Msg(bot,Back_Chnl_Id,Msg_Id)
-            Copied = Msg_Copy(Msg,Chnl)
+            if Mode == "Copy" :
+              Copied = Msg_Copy(Msg,Chnl)
+            else : 
+              Copied = Msg_Forward(Msg,Chnl)
             Res_list.append(str(Copied.id))
           Reply_Msg = Get_Msg(bot,User,Rpl_Id)
           Rep_Text = 'تم الإرسال 🌿'
