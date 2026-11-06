@@ -77,7 +77,15 @@ def Get_Chnl_N(bot,Chnl_Id):
 
 def Msg_Copy(Msg,Chnl_Id):
   try : 
-     Copy = Msg.copy(int(Chnl_Id) if is_int(Chnl_Id) else str(Chnl_Id).replace('=','_'))
+     Target_Id = int(Chnl_Id) if is_int(Chnl_Id) else str(Chnl_Id).replace('=','_')
+     if Msg.text:
+       Copy = bot.send_message(
+          chat_id=Target_Id,
+          text=Msg.text,
+          entities=Msg.entities,
+          disable_web_page_preview=False,)
+     else :
+      Copy = Msg.copy(Target_Id)
      return Copy
   except FloodWait as e :
       time.sleep(e.value)
