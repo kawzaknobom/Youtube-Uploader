@@ -385,7 +385,6 @@ def callback_query(CLIENT,CallbackQuery):
             Copied = Msg_Copy(Msg,Back_Chnl_Id)
           else : 
             Copied = Msg_Forward(Msg,Back_Chnl_Id) 
-          Copied = Msg_Copy(Msg,Back_Chnl_Id)
           Copied_List.append(str(Copied.id))
         Item = '-'.join(Copied_List)
         Add_Item(Msg,Item,Data,Method)
